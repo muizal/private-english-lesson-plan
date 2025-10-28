@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kita Bikin Romantis - Generator Perangkat Ajar</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .form-select, .form-input {
+            transition: all 0.2s ease-in-out;
+        }
+        /* Style untuk konten preview di dalam modal */
+        #modal-content .prose h1, #modal-content .prose h2, #modal-content .prose h3 { font-weight: 700; text-align: center; margin-bottom: 1.5rem; }
+        #modal-content .prose h4 { margin-top: 1.5em; margin-bottom: 0.5em; font-weight: 600; font-size: 1.1em; border-bottom: 1px solid #e2e8f0; padding-bottom: 0.25em;}
+        #modal-content .prose h5 { margin-top: 1.25em; margin-bottom: 0.25em; font-weight: 600; }
+        #modal-content .prose p { margin-bottom: 1em; line-height: 1.6; text-align: justify;}
+        #modal-content .prose ul, #modal-content .prose ol { margin-left: 1.5em; list-style-position: outside; padding-left: 1em; margin-bottom: 1em;}
+        #modal-content .prose blockquote { border-left: 4px solid #93c5fd; padding-left: 1em; font-style: italic; color: #475569; background-color: #eff6ff; }
+        #modal-content .prose table { width: 100%; border-collapse: collapse; margin-bottom: 1.5em; }
+        #modal-content .prose th, #modal-content .prose td { border: 1px solid #cbd5e1; padding: 0.5rem 0.75rem; text-align: left; }
+        #modal-content .prose th { background-color: #f1f5f9; font-weight: 600; }
+        #modal-content .prose strong { color: #1e293b; }
+        .page-break { page-break-before: always; }
+
+        /* CSS untuk Fungsi Cetak yang Sudah Diperbaiki */
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #modal-preview, #modal-preview * {
+                visibility: visible;
+            }
+            #modal-preview {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                height: auto;
+                max-height: none;
+                overflow: visible;
+            }
+            #modal-preview header, #modal-print-btn, #modal-close-btn {
+                display: none;
+            }
+            #modal-content {
+                overflow-y: visible;
+                padding: 0;
+            }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+
+    <div id="app" class="min-h-screen container mx-auto p-4 md:p-8 flex flex-col items-center">
+        
+        <header class="w-full max-w-4xl mb-8 text-center">
+            <div class="flex items-center justify-center gap-3">
+                <div class="bg-blue-600 p-2 rounded-lg">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-text"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/><line x1="10" x2="8" y1="9" y2="9"/></svg>
+                </div>
+                <h1 class="text-3xl font-bold text-slate-900">Kita Bikin Romantis</h1>
+            </div>
+        </header>
+
+        <main id="halaman-depan" class="w-full max-w-4xl text-center flex flex-col items-center justify-center flex-grow p-6 bg-white rounded-xl shadow-sm">
+            <div class="max-w-2xl">
+                <h2 class="text-4xl md:text-5xl font-bold text-blue-600 mb-4">Fokus Mengajar, Bukan Administrasi.</h2>
+                <p class="text-lg text-slate-600 mb-8">
+                    Generate semua perangkat ajar Kurikulum Merdeka—mulai dari Analisis CP hingga Modul Ajar—hanya dalam beberapa klik. Akurat, cepat, dan sesuai naskah final BSKAP 2025.
+                </p>
+                <button id="tombol-mulai" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg text-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5">
+                    ✨ Buat Perangkat Ajar Sekarang
+                </button>
+            </div>
+        </main>
+
+        <main id="halaman-formulir" class="w-full max-w-3xl bg-white rounded-xl shadow-sm p-6 md:p-10 hidden">
+            <h2 class="text-2xl font-bold text-center mb-2">Lengkapi Data Pengajaran</h2>
+            <p class="text-center text-slate-500 mb-8">Isi data di bawah ini untuk membuat seluruh dokumen secara otomatis berdasarkan CP final.</p>
+            
+            <form id="form-generator" class="space-y-6">
+                <fieldset class="border p-4 rounded-lg">
+                    <legend class="text-lg font-semibold px-2">Data Guru & Sekolah</legend>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+                        <div>
+                            <label for="nama_sekolah" class="block text-sm font-medium text-slate-700 mb-1">Nama Sekolah</label>
+                            <input type="text" id="nama_sekolah" name="nama_sekolah" class="form-input w-full p-2 border border-slate-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" placeholder="Contoh: SMAN 1 Paguyaman Pantai" required>
+                        </div>
+                        <div>
+                            <label for="nama_guru" class="block text-sm font-medium text-slate-700 mb-1">Nama Guru</label>
+                            <input type="text" id="nama_guru" name="nama_guru" class="form-input w-full p-2 border border-slate-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" placeholder="Contoh: Al Maykha, S.Pd MBG." required>
+                        </div>
+                        <div class="md:col-span-2">
+                            <label for="nip" class="block text-sm font-medium text-slate-700 mb-1">NIP (Opsional)</label>
+                            <input type="text" id="nip" name="nip" class="form-input w-full p-2 border border-slate-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" placeholder="Isi jika ada">
+                        </div>
+                    </div>
+                </fieldset>
+
+                <fieldset class="border p-4 rounded-lg">
+                    <legend class="text-lg font-semibold px-2">Detail Pengajaran</legend>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+                        <div class="md:col-span-2">
+                            <label for="jenjang_sekolah" class="block text-sm font-medium text-slate-700 mb-1">Jenjang Sekolah</label>
+                                                        <select id="jenjang_sekolah" name="jenjang_sekolah" class="form-select w-full p-2 border border-slate-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 bg-slate-100" required disabled>
+                                <option value="SMA" selected>SMA (Hanya Pribadi)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="fase" class="block text-sm font-medium text-slate-700 mb-1">Fase</label>
+                            <select id="fase" name="fase" class="form-select w-full p-2 border border-slate-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" required disabled>
+                                <option value="" disabled selected>Pilih Jenjang dulu</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="kelas" class="block text-sm font-medium text-slate-700 mb-1">Kelas</label>
+                            <select id="kelas" name="kelas" class="form-select w-full p-2 border border-slate-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" required disabled>
+                                <option value="" disabled selected>Pilih Fase dulu</option>
+                            </select>
+                        </div>
+                        <div class="md:col-span-2">
+                            <label for="mapel" class="block text-sm font-medium text-slate-700 mb-1">Mata Pelajaran</label>
+                                                        <select id="mapel" name="mapel" class="form-select w-full p-2 border border-slate-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" required>
+                                <option value="Bahasa Inggris">Bahasa Inggris (Umum)</option>
+                                <option value="Bahasa Inggris Tingkat Lanjut">Bahasa Inggris Tingkat Lanjut</option>
+                            </select>
+                        </div>
+                         <div>
+                            <label for="semester" class="block text-sm font-medium text-slate-700 mb-1">Semester</label>
+                            <select id="semester" name="semester" class="form-select w-full p-2 border border-slate-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" required>
+                                <option value="Ganjil">Ganjil (1)</option>
+                                <option value="Genap">Genap (2)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="tahun_ajaran" class="block text-sm font-medium text-slate-700 mb-1">Tahun Pelajaran</label>
+                            <input type="text" id="tahun_ajaran" name="tahun_ajaran" class="form-input w-full p-2 border border-slate-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" value="2025/2026" required>
+                        </div>
+                        <div class="md:col-span-2">
+                            <label for="alokasi_jp" class="block text-sm font-medium text-slate-700 mb-1">Alokasi Jam Pelajaran (JP) per Minggu</label>
+                            <input type="number" id="alokasi_jp" name="alokasi_jp" class="form-input w-full p-2 border border-slate-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" value="3" min="1" required>
+                        </div>
+                    </div>
+                </fieldset>
+
+                <fieldset class="border p-4 rounded-lg">
+                    <legend class="text-lg font-semibold px-2">Kondisi Sekolah</legend>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+                        <div>
+                            <label for="akses_internet" class="block text-sm font-medium text-slate-700 mb-1">Akses Internet Siswa di Kelas</label>
+                            <select id="akses_internet" name="akses_internet" class="form-select w-full p-2 border border-slate-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" required>
+                                <option value="Jaringan kuat & dapat diakses semua siswa">Jaringan kuat & dapat diakses semua siswa</option>
+                                <option value="Jaringan terbatas/lambat/hanya area tertentu">Jaringan terbatas/lambat/hanya area tertentu</option>
+                                <option value="Tidak ada jaringan internet untuk siswa">Tidak ada jaringan internet untuk siswa</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="media_pembelajaran" class="block text-sm font-medium text-slate-700 mb-1">Media Pembelajaran Tersedia</label>
+                             <select id="media_pembelajaran" name="media_pembelajaran" class="form-select w-full p-2 border border-slate-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" required>
+                                <option value="Lengkap (Proyektor, Speaker, Komputer, dll)">Lengkap (Proyektor, Speaker, Komputer, dll)</option>
+                                <option value="Cukup (Hanya 1-2 proyektor bergantian)">Cukup (Hanya 1-2 proyektor bergantian)</option>
+                                <option value="Terbatas (Hanya papan tulis & media cetak)">Terbatas (Hanya papan tulis & media cetak)</option>
+                            </select>
+                        </div>
+                    </div>
+                </fieldset>
+                
+                <div class="flex justify-center pt-4">
+                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-12 rounded-lg text-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5 flex items-center gap-2">
+                        <i data-lucide="rocket"></i>
+                        Generate Seluruh Dokumen!
+                    </button>
+                </div>
+            </form>
+        </main>
+
+        <main id="halaman-hasil" class="w-full max-w-4xl bg-white rounded-xl shadow-sm p-6 md:p-10 hidden">
+            <div class="text-center">
+                <div class="inline-block bg-green-100 p-3 rounded-full mb-4">
+                    <i data-lucide="check-circle-2" class="text-green-600 w-12 h-12"></i>
+                </div>
+                <h2 class="text-3xl font-bold mb-2">Dokumen Anda Siap!</h2>
+                <p id="info-dokumen" class="text-slate-600 mb-8 max-w-2xl mx-auto">Berikut adalah perangkat ajar untuk...</p>
+            </div>
+            
+            <div class="space-y-4">
+                 <div class="hidden md:grid grid-cols-12 gap-4 items-center px-4 py-2 text-sm font-semibold text-slate-600 uppercase">
+                    <div class="col-span-6">Nama Dokumen</div>
+                    <div class="col-span-6 text-right">Aksi</div>
+                </div>
+
+                <div id="daftar-dokumen-hasil"></div>
+            </div>
+
+            <div class="mt-8 flex flex-col md:flex-row justify-center items-center gap-4">
+                 <button id="tombol-unduh-semua" class="w-full md:w-auto bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-lg text-lg transition-all flex items-center justify-center gap-2">
+                     <i data-lucide="archive"></i>
+                     Unduh Semua (.zip)
+                 </button>
+                 <button id="tombol-buat-lagi" class="w-full md:w-auto bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold py-3 px-8 rounded-lg text-lg transition-all flex items-center justify-center gap-2">
+                     <i data-lucide="rotate-cw"></i>
+                     Buat Lagi
+                 </button>
+            </div>
+        </main>
+
+        <footer class="w-full max-w-4xl mt-12 text-center text-slate-500 text-sm">
+            <p>Sumber CP: BSKAP Kemendikbudristek No. 046/H/KR/2025.</p>
+            <p>&copy; 2025 Kita Bikin Romantis Dibuat untuk mempermudah para pendidik Indonesia.</p>
+        </footer>
+
+    </div>
+
+    <div id="modal-preview" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 hidden z-50">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] flex flex-col">
+            <header class="p-4 border-b flex justify-between items-center sticky top-0 bg-white z-10">
+                <h3 id="modal-title" class="text-xl font-bold">Preview Dokumen</h3>
+                <div class="flex items-center gap-2">
+                    <button id="modal-print-btn" class="text-slate-500 hover:text-slate-800 p-2 rounded-md hover:bg-slate-100"><i data-lucide="printer" class="w-5 h-5"></i></button>
+                    <button id="modal-close-btn" class="text-slate-500 hover:text-slate-800 p-2 rounded-md hover:bg-slate-100">
+                        <i data-lucide="x" class="w-6 h-6"></i>
+                    </button>
+                </div>
+            </header>
+            <main id="modal-content" class="p-6 overflow-y-auto">
+            </main>
+        </div>
+    </div>
+
+    <script src="cp-database.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // [PEMBARUAN 1] Blokir klik kanan
+            document.addEventListener('contextmenu', event => {
+                event.preventDefault();
+                alert('Jangan nakal ya');
+            });
+
+            // Variabel cpDatabase sekarang tersedia dari file cp-database.js
+            
+            const profilLulusan = [
+                {
+                    dimensi: "Keimanan dan Ketakwaan Terhadap Tuhan YME",
+                    deskripsi: "Murid menghayati ajaran agamanya dalam kehidupan sehari-hari, serta memiliki etika dan akhlak mulia baik kepada sesama manusia maupun alam."
+                },
+                {
+                    dimensi: "Kewargaan",
+                    deskripsi: "Murid menunjukkan rasa cinta tanah air, memahami hak dan kewajibannya sebagai warga negara, serta berpartisipasi aktif dalam kehidupan bermasyarakat dan bernegara."
+                },
+                {
+                    dimensi: "Kemandirian",
+                    deskripsi: "Murid mampu mengelola diri sendiri, baik secara fisik maupun mental, serta memiliki inisiatif dan tanggung jawab dalam proses belajar dan kehidupan."
+                },
+                {
+                    dimensi: "Kolaborasi",
+                    deskripsi: "Murid mampu bekerja sama secara efektif dengan orang lain, menghargai perbedaan pendapat, dan berkontribusi aktif untuk mencapai tujuan bersama."
+                },
+                {
+                    dimensi: "Penalaran Kritis",
+                    deskripsi: "Murid mampu menganalisis informasi secara objektif, mengevaluasi argumen, serta mengambil keputusan dan menyelesaikan masalah berdasarkan data dan logika."
+                },
+                {
+                    dimensi: "Kreativitas",
+                    deskripsi: "Murid mampu menghasilkan gagasan-gagasan baru yang orisinal dan inovatif, serta menemukan solusi alternatif untuk berbagai permasalahan."
+                },
+                {
+                    dimensi: "Komunikasi",
+                    deskripsi: "Murid mampu menyampaikan gagasan, informasi, dan perasaan secara jelas dan efektif, baik secara lisan, tulisan, maupun melalui berbagai media."
+                },
+                {
+                    dimensi: "Kesehatan",
+                    deskripsi: "Murid memiliki kesadaran dan menerapkan pola hidup sehat, serta menjaga kesejahteraan fisik, mental, dan sosial bagi diri sendiri dan lingkungannya."
+                }
+            ];
+            
+            const listDokumen = [
+                { id: 'analisis-cp', title: 'Analisis Capaian Pembelajaran (CP)', icon: 'file-search-2', color: 'text-blue-500' },
+                { id: 'tp', title: 'Tujuan Pembelajaran (TP)', icon: 'list-checks', color: 'text-cyan-500' },
+                { id: 'atp', title: 'Alur Tujuan Pembelajaran (ATP)', icon: 'git-merge', color: 'text-emerald-500' },
+                { id: 'kktp', title: 'KKTP (Kriteria Ketercapaian)', icon: 'check-square', color: 'text-green-500' },
+                { id: 'materi-ajar', title: 'Materi Ajar Esensial', icon: 'layers', color: 'text-indigo-500' },
+                { id: 'prota-prosem', title: 'Program Tahunan & Semester', icon: 'calendar-days', color: 'text-red-500' },
+                { id: 'modul-ajar', title: 'Modul Ajar / RPL', icon: 'book-marked', color: 'text-purple-500' },
+                { id: 'bank-asesmen', title: 'Bank Ide Asesmen', icon: 'clipboard-list', color: 'text-yellow-500' },
+            ];
+
+            const dataJenjang = {
+                'SD': ['A', 'B', 'C'],
+                'SMP': ['D'],
+                'SMA': ['E', 'F'],
+                'SMK': ['E', 'F']
+            };
+            const dataFase = {
+                'A': { kelas: ['1', '2'] }, 'B': { kelas: ['3', '4'] }, 'C': { kelas: ['5', '6'] },
+                'D': { kelas: ['7', '8', '9'] }, 'E': { kelas: ['10'] }, 'F': { kelas: ['11', '12'] }
+            };
+            
+            let currentFormData = {};
+
+            // Elemen Halaman & Form
+            const halamanDepan = document.getElementById('halaman-depan');
+            const halamanFormulir = document.getElementById('halaman-formulir');
+            const halamanHasil = document.getElementById('halaman-hasil');
+            const formGenerator = document.getElementById('form-generator');
+            
+            // Elemen Tombol
+            const tombolMulai = document.getElementById('tombol-mulai');
+            const tombolBuatLagi = document.getElementById('tombol-buat-lagi');
+            const tombolUnduhSemua = document.getElementById('tombol-unduh-semua');
+            
+            // Elemen Form
+            const jenjangSelect = document.getElementById('jenjang_sekolah');
+            const faseSelect = document.getElementById('fase');
+            const kelasSelect = document.getElementById('kelas');
+            
+            // Elemen Hasil
+            const daftarDokumenHasil = document.getElementById('daftar-dokumen-hasil');
+
+            // Elemen Modal
+            const modal = document.getElementById('modal-preview');
+            const modalTitle = document.getElementById('modal-title');
+            const modalContent = document.getElementById('modal-content');
+            const modalCloseBtn = document.getElementById('modal-close-btn');
+            const modalPrintBtn = document.getElementById('modal-print-btn');
+
+            lucide.createIcons();
+            populateFaseOptions(); // <-- BARIS INI DIUBAH/DITAMBAHKAN
+
+            tombolMulai.addEventListener('click', () => {
+                halamanDepan.classList.add('hidden');
+                halamanFormulir.classList.remove('hidden');
+            });
+
+            // FUNGSI INI DIUBAH
+            tombolBuatLagi.addEventListener('click', () => {
+                halamanHasil.classList.add('hidden');
+                halamanFormulir.classList.remove('hidden');
+                formGenerator.reset();
+                // Baris di bawah ini diubah untuk me-reset dropdown Fase/Kelas dengan benar
+                populateFaseOptions(); 
+            });
+
+            // KODE DI BAWAH INI DIPINDAHKAN KE FUNGSI BARU
+            function populateFaseOptions() {
+                const jenjang = jenjangSelect.value; // Mengambil nilai langsung
+                const faseOptions = dataJenjang[jenjang] || [];
+                
+                faseSelect.innerHTML = '<option value="" disabled selected>Pilih Fase</option>';
+                faseOptions.forEach(f => {
+                    const option = document.createElement('option');
+                    option.value = f;
+                    option.textContent = `Fase ${f}`;
+                    faseSelect.appendChild(option);
+                });
+                faseSelect.disabled = false; // Pastikan Fase di-enable
+
+                kelasSelect.innerHTML = '<option value="" disabled selected>Pilih Fase dulu</option>';
+                kelasSelect.disabled = true;
+            }
+
+            // Tetap panggil fungsi ini di event 'change' (jika Anda ingin mengaktifkannya lagi nanti)
+            jenjangSelect.addEventListener('change', populateFaseOptions);
+
+            faseSelect.addEventListener('change', (e) => {
+                const fase = e.target.value;
+                const data = dataFase[fase];
+                kelasSelect.innerHTML = '<option value="" disabled selected>Pilih Kelas</option>';
+                if (data && data.kelas) {
+                    data.kelas.forEach(k => {
+                        const option = document.createElement('option');
+                        option.value = k;
+                        option.textContent = `Kelas ${k}`;
+                        kelasSelect.appendChild(option);
+                    });
+                    kelasSelect.disabled = false;
+                } else {
+                    kelasSelect.disabled = true;
+                }
+            });
+
+            formGenerator.addEventListener('submit', (e) => {
+                e.preventDefault();
+                
+                // DIUBAH: Menambahkan 'jenjang_sekolah' secara manual karena 'disabled'
+                const formData = new FormData(formGenerator);
+                currentFormData = Object.fromEntries(formData.entries());
+                currentFormData.jenjang_sekolah = jenjangSelect.value; // Ambil nilai dari select yg nonaktif
+                
+                const infoDokumen = document.getElementById('info-dokumen');
+                const mapelName = (currentFormData.mapel || '').toLowerCase().includes('bimbingan') ? 'Layanan Bimbingan Konseling' : currentFormData.mapel;
+                infoDokumen.textContent = `Berikut adalah perangkat ajar untuk ${mapelName} Fase ${currentFormData.fase} Kelas ${currentFormData.kelas} (${currentFormData.semester}), Tahun Pelajaran ${currentFormData.tahun_ajaran}.`;
+                
+                generateResultList();
+                halamanFormulir.classList.add('hidden');
+                halamanHasil.classList.remove('hidden');
+                window.scrollTo(0, 0);
+            });
+
+            function estimateMeetings(kontenCount, jpPerMinggu) {
+                if (kontenCount === 0) return [];
+                const totalEffectiveWeeks = 18;
+                const weeksForAssessment = 2; // 1 UTS, 1 UAS
+                const learningWeeks = totalEffectiveWeeks - weeksForAssessment;
+                const totalJp = learningWeeks * jpPerMinggu;
+                
+                let jpPerTopic = [];
+                if (kontenCount > 0) {
+                    const baseJp = Math.floor(totalJp / kontenCount);
+                    let remainder = totalJp % kontenCount;
+                    for (let i = 0; i < kontenCount; i++) {
+                        jpPerTopic[i] = baseJp + (i < remainder ? 1 : 0);
+                    }
+                }
+
+                return jpPerTopic.map(jp => Math.max(1, Math.round(jp / jpPerMinggu)));
+            }
+            
+            function generateResultList() {
+                daftarDokumenHasil.innerHTML = '';
+                const cpData = getCpData(currentFormData);
+                const meetingEstimates = cpData ? estimateMeetings(cpData.analisis.konten.length, parseInt(currentFormData.alokasi_jp)) : [];
+                const midIndex = cpData ? Math.ceil(cpData.analisis.konten.length / 2) : 0;
+                const semesterKonten = currentFormData.semester === 'Ganjil' 
+                    ? (cpData ? cpData.analisis.konten.slice(0, midIndex) : [])
+                    : (cpData ? cpData.analisis.konten.slice(midIndex) : []);
+
+                listDokumen.forEach(doc => {
+                    const docElement = document.createElement('div');
+                    docElement.id = `doc-${doc.id}`;
+                    docElement.className = 'bg-slate-50 border border-slate-200 rounded-lg p-4 flex flex-col md:flex-row md:items-center md:justify-between';
+                    
+                    const isBK = (currentFormData.mapel || '').toLowerCase().includes('bimbingan');
+                    const modulTitle = isBK ? 'Rencana Pelaksanaan Layanan (RPL)' : 'Modul Ajar';
+                    if (doc.id === 'modul-ajar') doc.title = modulTitle;
+
+
+                    if (doc.id === 'modul-ajar') {
+                        docElement.innerHTML = `
+                            <div class="flex-grow w-full">
+                                <div class="flex items-center gap-3 mb-4">
+                                    <i data-lucide="${doc.icon}" class="${doc.color} w-6 h-6"></i>
+                                    <span class="font-semibold">${doc.title}</span>
+                                </div>
+                                
+                                <div class="modul-ajar-container pt-4 border-t border-slate-200 flex flex-col md:flex-row md:items-end gap-2">
+                                    <div class="flex-grow">
+                                        <label class="text-xs font-medium text-slate-600">Pilih Materi:</label>
+                                        <select class="modul-materi-select form-select w-full text-sm p-2 border-slate-300 rounded-md">
+                                            ${semesterKonten.length > 0 ? semesterKonten.map((k, i) => `<option value="${i}">${i+1}. ${k}</option>`).join('') : '<option>Tidak ada data</option>'}
+                                        </select>
+                                    </div>
+                                    <div class="flex-grow">
+                                        <label class="text-xs font-medium text-slate-600">Pilih Pertemuan:</label>
+                                        <select class="modul-pertemuan-select form-select w-full text-sm p-2 border-slate-300 rounded-md"></select>
+                                    </div>
+                                    <div class="flex-shrink-0">
+                                        <button class="modul-preview-btn bg-white border border-slate-300 hover:bg-slate-100 text-slate-700 font-semibold py-2 px-4 rounded-lg text-sm transition-all flex items-center gap-1.5 w-full md:w-auto" data-title="${modulTitle}"><i data-lucide="eye" class="w-4 h-4"></i> Lihat Dokumen</button>
+                                    </div>
+                                </div>
+                            </div>`;
+                    } else {
+                        docElement.innerHTML = `
+                            <div class="flex-grow flex items-center gap-3">
+                                <i data-lucide="${doc.icon}" class="${doc.color} w-6 h-6"></i>
+                                <span class="font-semibold">${doc.title}</span>
+                            </div>
+                            <div class="flex-shrink-0 flex justify-end gap-2 w-full md:w-auto mt-2 md:mt-0">
+                                <button class="preview-btn bg-white border border-slate-300 hover:bg-slate-100 text-slate-700 font-semibold py-2 px-4 rounded-lg text-sm transition-all flex items-center gap-1.5" data-title="${doc.title}"><i data-lucide="eye" class="w-4 h-4"></i> Lihat</button>
+                                <button class="download-btn bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg text-sm transition-all flex items-center gap-1.5"><i data-lucide="download" class="w-4 h-4"></i> Unduh</button>
+                            </div>
+                        `;
+                    }
+                    
+                    daftarDokumenHasil.appendChild(docElement);
+
+                    if (doc.id === 'modul-ajar') {
+      _ECHO_ truncated due to context length limits ...
+                        const materiSelect = docElement.querySelector('.modul-materi-select');
+                        const pertemuanSelect = docElement.querySelector('.modul-pertemuan-select');
+                        
+                        function populatePertemuanSelect() {
+                            if (!materiSelect.value) return;
+                            const selectedMateriIndexInSemester = parseInt(materiSelect.value);
+                            const originalIndex = currentFormData.semester === 'Ganjil' 
+                                ? selectedMateriIndexInSemester 
+                                : midIndex + selectedMateriIndexInSemester;
+
+                            const numMeetings = meetingEstimates[originalIndex] || 1;
+                            pertemuanSelect.innerHTML = '';
+                            for (let i = 1; i <= numMeetings; i++) {
+                                const option = document.createElement('option');
+                                option.value = i;
+                                option.textContent = `Pertemuan ${i}`;
+                                pertemuanSelect.appendChild(option);
+                            }
+                        }
+
+                      gagal memuat data modul ajar.</p>`;
+                        }
+                        break;
+                    
+                    case 'Bank Ide Asesmen':
+                        content += `
+                            ${generateHeader('BANK IDE ASESMEN', data)}
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Tujuan Pembelajaran</th>
+                                        <th>Asesmen Diagnostik (Awal)</th>
+                                        <th>Asesmen Formatif (Proses)</th>
+                                        <th>Asesmen Sumatif (Akhir Unit)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                ${tps.map(tp => `
+                                    <tr>
+                                        <td>${tp.text}</td>
+                                        <td>Tanya jawab lisan, Kuis singkat (Benar/Salah), Peta Konsep awal.</td>
+                                        <td>Observasi diskusi kelompok (Rubrik), Penilaian unjuk kerja/presentasi, Ceklis pemahaman saat pengerjaan LKPD.</td>
+                                        <td>Proyek studi kasus, Tes tulis (esai singkat), Portofolio karya, Ujian praktik.</td>
+                                    </tr>
+                                `).join('')}
+</tbody>
+                            </table>
+                            ${generateSignature(data)}`;
+                        break;
+                    default:
+                        content += `<p>Ini adalah preview untuk dokumen ${title}. Konten lengkap akan tersedia di file yang diunduh.</p>`;
+                }
+                content += `</div>`;
+                return content;
+            }
+            
+            function getRecommendation(internet, media) {
+                const recommendations = {
+                    'kuat-lengkap': {
+                        apersepsi: "Guru menampilkan video singkat relevan dari YouTube untuk memicu rasa ingin tahu siswa.",
+                        observe: "Peserta didik disajikan studi kasus/video/gambar yang relevan dengan topik.",
+                        main: "Siswa melakukan riset online secara berkelompok menggunakan gawai/komputer sekolah untuk mencari informasi mendalam dan data pendukung.",
+                        communicate: "Setiap kelompok membuat presentasi digital (misal: Canva/PPT) dan mempresentasikannya menggunakan proyektor."
+                    },
+                    'terbatas-cukup': {
+                        apersepsi: "Guru menampilkan beberapa gambar kunci melalui proyektor dan mengajukan pertanyaan terkait.",
+                        observe: "Peserta didik mengamati gambar/studi kasus yang ditampilkan guru via proyektor.",
+                        main: "Guru menyediakan beberapa artikel/sumber yang sudah diunduh. Siswa secara berkelompok menganalisis sumber tersebut dan berdiskusi.",
+                        communicate: "Setiap kelompok menuliskan hasil diskusinya di kertas plano/karton dan mempresentasikannya di depan kelas (gallery walk)."
+                    },
+                    'tidak ada-terbatas': {
+                        apersepsi: "Guru memulai dengan cerita atau studi kasus verbal yang berkaitan dengan topik.",
+                        observe: "Peserta didik diberikan potongan artikel dari koran/majalah atau studi kasus yang sudah dicetak.",
+                        main: "Siswa berdiskusi dalam kelompok dengan mengandalkan buku teks dan bahan ajar cetak yang disediakan guru.",
+                        communicate: "Setiap kelompok menyampaikan hasil diskusinya secara lisan di depan kelas, sementara kelompok lain menanggapi."
+                    }
+                };
+
+                if (internet.includes('kuat') && media.includes('Lengkap')) return recommendations['kuat-lengkap'];
+                if (internet.includes('terbatas') || media.includes('Cukup')) return recommendations['terbatas-cukup'];
+                return recommendations['tidak ada-terbatas'];
+            }
+
+            function calculateProsemDistribution(semester, topics, meetings, jpPerWeek) {
+                const totalWeeks = 18;
+                let schedule = [];
+                let currentWeek = 1;
+
+                const semesterMonths = semester === 'Ganjil' 
+                    ? ['Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember']
+                    : ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni'];
+                
+                let calendar = [];
+          _ECHO_ truncated due to context length limits ...
+                    for (let i = 1; i <= 4; i++) {
+                        calendar.push({ month: month, week: i, topic: null });
+                    }
+                });
+
+                // Assign assessments
+                const utsWeek = semester === 'Ganjil' ? 9 : 9; // Approx week 9
+                const uasWeek = totalWeeks - 1; // Approx last two weeks
+            	 messageBox.style.opacity = '0';
+                    setTimeout(() => {
+                        if (document.body.contains(messageBox)) {
+                             document.body.removeChild(messageBox);
+                        }
+                    }, 300);
+                }, 3000);
+            }
+
+            function openModal(title, extraParams = {}) {
+                modalTitle.textContent = title;
+                modalContent.innerHTML = generatePreviewContent(title, currentFormData, extraParams);
+                modal.classList.remove('hidden');
+                document.body.style.overflow = 'hidden';
+            }
+
+            function closeModal() {
+                modal.classList.add('hidden');
+                document.body.style.overflow = '';
+            }
+            
+            modalPrintBtn.addEventListener('click', () => {
+                window.print();
+            });
+
+            modalCloseBtn.addEventListener('click', closeModal);
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    closeModal();
+                }
+            });
+        });
+    </script>
+
+</body>
+</html>
